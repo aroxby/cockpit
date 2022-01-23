@@ -17,13 +17,11 @@ jobs:
             echo "export IMAGETAG=$IMAGETAG" >> $BASH_ENV
             echo "export MAINTAG=$IMAGENAME" >> $BASH_ENV
       - run:
-          name: Pull Previous Builds
-          command: |
-            docker pull $MAINTAG
-            docker pull $IMAGETAG || true
-      - run:
           name: Build Docker Image
-          command: docker build -t $IMAGETAG .
+          command: |
+            docker build --cache-from $IMAGETAG -t $IMAGETAG . || \
+            docker build --cache-from $MAINTAG -t $IMAGETAG . || \
+            docker build -t $IMAGETAG .
       - run:
           name: Publish Image
           command: |
