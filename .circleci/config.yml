@@ -1,0 +1,42 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Set Image Tag
+          command: |
+            IMAGENAME=$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+            IMAGETAG=$IMAGENAME:${CIRCLE_BRANCH/\//-}
+            echo "export IMAGENAME=$IMAGENAME" >> $BASH_ENV
+            echo "export IMAGETAG=$IMAGETAG" >> $BASH_ENV
+      - run:
+          name: Build Docker Image
+          command: docker build -t $IMAGETAG .
+      - run:
+          name: Publish Image
+          command: |
+            docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+            docker push $IMAGETAG
+      - when:
+          condition:
+            matches:
+              pattern: "^main$"
+              value: << pipeline.git.branch >>
+          steps:
+          - run:
+              name: Tag Latest
+              command: |
+                MAINTAG=IMAGENAME:latest
+                docker tag $IMAGETAG $MAINTAG
+                docker push $MAINTAG
+
+workflows:
+  default:
+    jobs:
+      - build
