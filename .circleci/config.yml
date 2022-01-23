@@ -13,8 +13,14 @@ jobs:
           command: |
             IMAGENAME=$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
             IMAGETAG=$IMAGENAME:${CIRCLE_BRANCH/\//-}
-            echo "export IMAGENAME=$IMAGENAME" >> $BASH_ENV
+            MAINTAG=$IMAGENAME:latest
             echo "export IMAGETAG=$IMAGETAG" >> $BASH_ENV
+            echo "export MAINTAG=$IMAGENAME" >> $BASH_ENV
+      - run:
+          name: Pull Previous Builds
+          command: |
+            docker pull $MAINTAG
+            docker pull $IMAGETAG || true
       - run:
           name: Build Docker Image
           command: docker build -t $IMAGETAG .
@@ -32,7 +38,6 @@ jobs:
           - run:
               name: Tag Latest
               command: |
-                MAINTAG=$IMAGENAME:latest
                 docker tag $IMAGETAG $MAINTAG
                 docker push $MAINTAG
 
