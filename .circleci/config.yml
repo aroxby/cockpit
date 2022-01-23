@@ -32,7 +32,7 @@ jobs:
           - run:
               name: Tag Latest
               command: |
-                MAINTAG=IMAGENAME:latest
+                MAINTAG=$IMAGENAME:latest
                 docker tag $IMAGETAG $MAINTAG
                 docker push $MAINTAG
 
